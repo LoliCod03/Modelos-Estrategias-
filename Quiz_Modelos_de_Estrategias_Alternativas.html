@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Quiz: Modelos de Estrategias Alternativas</title>
+<style>
+:root{--ink:#17233b;--muted:#66738a;--blue:#2457a7;--blue2:#eaf1fc;--line:#dce3ee;--paper:#fff;--bg:#f3f6fb;--green:#16845b;--red:#bd3d4a}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif;line-height:1.55}
+.wrap{width:min(900px,calc(100% - 28px));margin:36px auto}
+.panel{background:var(--paper);border:1px solid var(--line);border-radius:22px;padding:clamp(22px,5vw,44px);box-shadow:0 12px 35px rgba(28,48,83,.07)}
+.kicker{font-size:.76rem;letter-spacing:.13em;text-transform:uppercase;font-weight:800;color:var(--blue)}
+h1{font-size:clamp(2rem,5vw,3.1rem);line-height:1.08;letter-spacing:-.045em;margin:12px 0}
+h2{font-size:1.45rem;line-height:1.25;margin:10px 0 18px}
+p{color:var(--muted)}
+.intro{font-size:1.05rem;max-width:680px}
+.meta{display:flex;gap:10px;flex-wrap:wrap;margin:24px 0}
+.pill{background:var(--blue2);color:var(--blue);padding:7px 12px;border-radius:99px;font-size:.84rem;font-weight:700}
+button{font:inherit;cursor:pointer;border:0;border-radius:12px;padding:12px 18px;font-weight:750;transition:.18s}
+.primary{background:var(--blue);color:#fff}.primary:hover{background:#194785;transform:translateY(-1px)}
+.secondary{background:#edf1f7;color:var(--ink)}
+button:disabled{opacity:.5;cursor:not-allowed;transform:none}
+.topline{display:flex;justify-content:space-between;gap:12px;align-items:center;color:var(--muted);font-size:.9rem;font-weight:700}
+.track{height:9px;background:#e8edf5;border-radius:20px;overflow:hidden;margin:12px 0 28px}
+.fill{height:100%;width:0;background:var(--blue);transition:width .25s}
+.question{font-size:1.28rem;font-weight:760;line-height:1.4;margin:12px 0 22px}
+.answers{display:grid;gap:11px}
+.answer{width:100%;text-align:left;background:#fff;border:1.5px solid var(--line);color:var(--ink);padding:14px 16px;border-radius:13px;display:flex;gap:12px;align-items:flex-start}
+.answer:hover:not(:disabled){border-color:var(--blue);background:#f8faff}
+.letter{flex:0 0 28px;height:28px;border-radius:8px;background:#edf1f7;display:grid;place-items:center;font-weight:800;color:#53627a}
+.answer.correct{border-color:var(--green);background:#effaf5}.answer.correct .letter{background:#d5f2e4;color:var(--green)}
+.answer.wrong{border-color:var(--red);background:#fff3f3}.answer.wrong .letter{background:#fbe0e2;color:var(--red)}
+.feedback{display:none;margin-top:18px;padding:15px 17px;border-radius:13px;background:#f1f5fb;border-left:4px solid var(--blue)}
+.feedback.show{display:block}.feedback strong{display:block;margin-bottom:3px}
+.actions{display:flex;justify-content:space-between;gap:12px;margin-top:24px;flex-wrap:wrap}
+.scorebox{background:var(--blue2);padding:20px;border-radius:16px;margin:22px 0}
+.score{font-size:2.6rem;font-weight:850;letter-spacing:-.05em;color:var(--blue)}
+.review{border-top:1px solid var(--line);padding:15px 0}.review:last-child{border-bottom:1px solid var(--line)}
+.review small{color:var(--muted)}.hidden{display:none!important}
+.note{font-size:.88rem;color:var(--muted);margin-top:20px}
+@media(max-width:560px){.wrap{margin:14px auto}.panel{border-radius:17px}.actions button{flex:1}}
+</style>
+</head>
+<body>
+<main class="wrap">
+<section class="panel" id="start">
+ <div class="kicker">Material de estudio · Gerencia estratégica</div>
+ <h1>Modelos de<br>Estrategias Alternativas</h1>
+ <p class="intro">Practica los conceptos, características, ejemplos y condiciones de aplicación de las estrategias alternativas de gestión estratégica.</p>
+ <div class="meta"><span class="pill">25 preguntas por intento</span><span class="pill">Preguntas aleatorias</span><span class="pill">100 puntos por acierto</span></div>
+ <button class="primary" onclick="startQuiz()">Comenzar quiz →</button>
+ <p class="note">El cuestionario utiliza la información del PDF proporcionado. Al responder, recibirás una explicación breve para reforzar el tema.</p>
+</section>
+<section class="panel hidden" id="quiz">
+ <div class="topline"><span id="counter">Pregunta 1 de 25</span><span id="liveScore">0 puntos</span></div>
+ <div class="track"><div class="fill" id="progress"></div></div>
+ <div class="kicker" id="category">Integración</div>
+ <div class="question" id="question"></div>
+ <div class="answers" id="answers"></div>
+ <div class="feedback" id="feedback" aria-live="polite"></div>
+ <div class="actions"><button class="secondary" onclick="quitQuiz()">Salir</button><button class="primary" id="next" onclick="nextQuestion()" disabled>Siguiente →</button></div>
+</section>
+<section class="panel hidden" id="result">
+ <div class="kicker">Resultado del intento</div><h1 id="resultTitle">¡Buen trabajo!</h1><p id="resultText"></p>
+ <div class="scorebox"><div class="score" id="finalScore">0</div><strong>puntos obtenidos</strong><p id="correctCount"></p></div>
+ <h2>Repaso de respuestas</h2><div id="review"></div>
+ <div class="actions"><button class="secondary" onclick="showStart()">Volver al inicio</button><button class="primary" onclick="startQuiz()">Intentar de nuevo ↻</button></div>
+</section>
+</main>
+<script>
+const bank = [
+{c:"Integración hacia adelante",q:"¿En qué consiste la integración hacia adelante?",a:["Adquirir o fusionarse con empresas que funcionan como distribuidores.","Comprar a los proveedores de materias primas.","Reducir los activos para disminuir gastos.","Crear productos que no se relacionan con la actividad principal."],k:0,e:"La integración hacia adelante busca adquirir en propiedad o fusionarse con empresas que funcionan como distribuidores."},
+{c:"Integración hacia adelante",q:"¿Cuál es una ventaja de la integración hacia adelante?",a:["Perder contacto con los consumidores.","Ofrecer mejor servicio posventa y soporte técnico.","Aumentar la dependencia de distribuidores externos.","Eliminar la relación con los clientes."],k:1,e:"El material señala que esta estrategia puede mejorar el servicio posventa, el soporte técnico y el cumplimiento de garantías."},
+{c:"Integración hacia adelante",q:"¿Qué puede conocer mejor una empresa al acercarse directamente a sus consumidores?",a:["El comportamiento de sus consumidores.","Los costos de todos sus competidores.","La estructura interna de sus proveedores.","Las políticas de otros gobiernos."],k:0,e:"Una ventaja indicada es obtener un mejor conocimiento de cómo se comportan los consumidores."},
+{c:"Integración hacia adelante",q:"¿Por qué Apple es el ejemplo de integración hacia adelante del documento?",a:["Porque compra una granja para producir leche.","Porque vende sus productos directamente en Apple Store y en su sitio web.","Porque adquirió una empresa de jugos.","Porque redujo sus tiendas y activos."],k:1,e:"Apple diseña y fabrica productos y también los vende directamente a través de sus tiendas y sitio web, controlando la experiencia del cliente."},
+{c:"Integración hacia atrás",q:"¿Qué busca la integración hacia atrás?",a:["Controlar o apropiarse de los proveedores de la empresa.","Adquirir empresas distribuidoras.","Vender todos los activos de la organización.","Entrar en un mercado geográfico nuevo."],k:0,e:"La integración hacia atrás consiste en apropiarse de los proveedores o aumentar el control sobre ellos."},
+{c:"Integración hacia atrás",q:"¿En cuál situación puede aplicar la integración hacia atrás?",a:["Cuando los proveedores son muy costosos o poco confiables.","Cuando la empresa desea vender sus activos.","Cuando quiere lanzar una bebida con otro sabor.","Cuando busca reducir el contacto con sus proveedores."],k:0,e:"El documento indica que puede aplicarse cuando los proveedores son muy costosos o poco confiables."},
+{c:"Integración hacia atrás",q:"¿Cuál es el ejemplo de integración hacia atrás presentado en el PDF?",a:["Una empresa de helados que compra una granja lechera.","Una marca que abre tiendas propias.","Una empresa de jugos que amplía su portafolio.","Una compañía que vende todos sus activos."],k:0,e:"Al comprar una granja, la compañía de helados asegura un suministro constante de leche y puede controlar mejor el precio."},
+{c:"Integración horizontal",q:"¿Qué describe la integración horizontal?",a:["Aumentar la producción de bienes o servicios en la misma parte de la cadena de suministro.","Adquirir exclusivamente a los proveedores.","Reducir costos y activos para revertir pérdidas.","Vender productos en mercados que no existen."],k:0,e:"La definición del documento se refiere a aumentar la producción en la misma parte de la cadena de suministro."},
+{c:"Integración horizontal",q:"¿Cuál de las siguientes opciones aparece como tipo de integración horizontal?",a:["Asociación.","Liquidación.","Encogimiento.","Penetración."],k:0,e:"El documento enumera asociación, fusión, adquisición, Joint Venture y consorcio."},
+{c:"Integración horizontal",q:"¿Qué puede lograr la integración horizontal en marketing?",a:["Acceder a nuevos clientes y segmentos atendidos antes por competidores.","Eliminar la necesidad de conocer al cliente.","Reducir la coordinación entre unidades productivas.","Concentrarse únicamente en los proveedores."],k:0,e:"En marketing, puede ampliar la base de clientes y diversificar la cartera de productos o servicios."},
+{c:"Integración horizontal",q:"Según el documento, ¿qué puede mejorar la integración horizontal en producción?",a:["El control sobre calidad, costos y tiempos de producción.","La dependencia de terceros.","La cantidad de competidores del mercado.","La incertidumbre sobre los procesos."],k:0,e:"El enfoque de producción ofrece mayor control sobre calidad, costos y tiempos al reducir la dependencia de terceros."},
+{c:"Integración horizontal",q:"¿Qué ejemplo de integración horizontal se menciona relacionado con Gap?",a:["Adquirió Banana Republic y lanzó Old Navy.","Compró una granja lechera.","Creó Apple Store.","Se fusionó con Del Valle."],k:0,e:"El material indica que Gap adquirió Banana Republic y lanzó Old Navy para dirigirse a distintos grupos de consumidores."},
+{c:"Integración horizontal",q:"¿Qué hizo Coca-Cola en el ejemplo del documento?",a:["Adquirió Del Valle en 2007 para ampliar su portafolio de bebidas.","Compró una empresa de distribución de teléfonos.","Lanzó una granja de producción de leche.","Vendió todos sus activos."],k:0,e:"El PDF menciona la adquisición de Del Valle en 2007 para ampliar el portafolio de bebidas, principalmente en América Latina."},
+{c:"Penetración del mercado",q:"¿Cuál es el objetivo de la penetración del mercado?",a:["Aumentar la participación de mercado de productos o servicios presentes mediante mayor esfuerzo comercial.","Crear productos totalmente diferentes.","Entrar exclusivamente en otros países.","Reducir la empresa y sus activos."],k:0,e:"La penetración busca aumentar la participación de mercado de los productos o servicios actuales mediante esfuerzos de comercialización."},
+{c:"Penetración del mercado",q:"¿Cuál acción corresponde a una estrategia de penetración del mercado?",a:["Elevar el gasto publicitario y ofrecer promociones.","Vender todos los activos.","Comprar una granja para producir insumos.","Crear una empresa conjunta contractual."],k:0,e:"Entre las acciones citadas están aumentar vendedores, gasto publicitario, promociones y actividades publicitarias."},
+{c:"Penetración del mercado",q:"¿Cuándo puede ser aplicable la penetración del mercado?",a:["Cuando los mercados presentes no están saturados con el producto o servicio.","Cuando la empresa ya no puede continuar operando.","Cuando el nuevo producto no tiene relación con la actividad.","Cuando se busca vender una división."],k:0,e:"El material menciona como condición que los mercados presentes no estén saturados con el producto o servicio."},
+{c:"Desarrollo de mercado",q:"¿Qué busca el desarrollo de mercado?",a:["Conquistar nuevos mercados para los productos de la empresa.","Reducir el número de productos actuales.","Adquirir a los proveedores.","Cerrar una empresa con problemas financieros."],k:0,e:"Es una estrategia de expansión que busca crecer conquistando nuevos mercados o nichos."},
+{c:"Desarrollo de mercado",q:"¿Cuál es un ejemplo ilustrado en el documento para desarrollo de mercado?",a:["Uber y sus servicios como Uber Eats y Uber for Business.","La granja lechera de una empresa de helados.","Apple Store como canal directo.","La adquisición de Del Valle."],k:0,e:"La diapositiva presenta Uber, Uber Eats, Uber for Business y Uber RUSH como ejemplos ilustrados."},
+{c:"Desarrollo del producto",q:"¿Qué es el desarrollo del producto?",a:["Crear un nuevo producto o servicio desde la idea inicial hasta su lanzamiento.","Adquirir a una empresa distribuidora.","Reducir los activos de una empresa.","Vender productos actuales en nuevos mercados solamente."],k:0,e:"El desarrollo de productos abarca el proceso desde la idea inicial hasta el lanzamiento al mercado."},
+{c:"Desarrollo del producto",q:"¿Cuál es una de las etapas del desarrollo de productos?",a:["Creación de prototipos.","Liquidación de activos.","Desinversión de una división.","Reducción de proveedores."],k:0,e:"Las etapas incluyen ideación, análisis de mercado, selección, prototipos, análisis del producto, prueba del mercado y comercialización."},
+{c:"Desarrollo del producto",q:"¿Qué propósito tiene una estrategia de desarrollo de productos?",a:["Crear productos nuevos o mejorar rendimiento, costo o calidad de los existentes.","Evitar cualquier cambio en los productos.","Eliminar los canales de distribución.","Reducir la cartera de clientes."],k:0,e:"El documento indica que esta estrategia ofrece un marco para crear nuevos productos o mejorar el rendimiento, costo o calidad de los existentes."},
+{c:"Diversificación concéntrica",q:"¿Qué caracteriza a la diversificación concéntrica?",a:["Añadir productos nuevos relacionados con los que la empresa ya ofrece.","Añadir productos completamente ajenos a la actividad actual.","Vender todos los activos de la empresa.","Adquirir únicamente a los distribuidores."],k:0,e:"La diversificación concéntrica incorpora productos nuevos, generalmente relacionados con la línea que ya existía."},
+{c:"Diversificación concéntrica",q:"Una marca de refrescos de menta lanza versiones de limón, naranja y melocotón. ¿Qué estrategia ejemplifica?",a:["Diversificación concéntrica.","Desinversión.","Integración hacia atrás.","Liquidación."],k:0,e:"Son nuevos sabores dentro de una línea de productos relacionada con la oferta original."},
+{c:"Diversificación conglomerada",q:"¿Qué implica la diversificación conglomerada?",a:["Agregar productos o servicios significativamente diferentes de los actuales.","Crear variantes relacionadas con la misma línea de productos.","Comprar a los proveedores.","Aumentar la publicidad de productos existentes."],k:0,e:"La definición del documento destaca que los nuevos productos o servicios son significativamente diferentes de los actuales."},
+{c:"Diversificación conglomerada",q:"¿Cuál de estos factores se menciona para evaluar la diversificación por conglomerado?",a:["Capacidad para cumplir objetivos de rentabilidad y rendimiento de la inversión.","Número de colores del empaque.","Cantidad de publicaciones en redes sociales.","Distancia entre las tiendas."],k:0,e:"El material menciona la capacidad de cumplir objetivos corporativos de rentabilidad y rendimiento de la inversión."},
+{c:"Diversificación conglomerada",q:"¿Qué condición industrial se considera en la diversificación por conglomerado?",a:["Vulnerabilidad a recesión, inflación, altas tasas de interés o cambios de política gubernamental.","Que todos los productos sean iguales.","Que no existan regulaciones.","Que la empresa no necesite capital."],k:0,e:"El documento incluye la vulnerabilidad de la industria ante esos factores económicos y gubernamentales."},
+{c:"Diversificación horizontal",q:"¿Qué plantea la diversificación horizontal?",a:["Ofrecer un nuevo producto para satisfacer necesidades de los clientes, aunque no corresponda a la actividad principal.","Crear productos casi iguales a los existentes.","Comprar una empresa proveedora.","Reducir costos y activos."],k:0,e:"La diversificación horizontal identifica necesidades de los clientes y busca satisfacerlas con productos nuevos que no están en las líneas actuales."},
+{c:"Diversificación horizontal",q:"¿Qué puede hacer una empresa para identificar oportunidades de diversificación horizontal?",a:["Realizar estudios de mercado, encuestas y analizar el comportamiento de los consumidores.","Ignorar las preferencias de sus clientes.","Evitar revisar el rendimiento de sus ventas.","Reducir sus canales de información."],k:0,e:"El documento propone encuestas, estudio del comportamiento de consumidores y análisis del rendimiento de ventas."},
+{c:"Joint Venture",q:"¿Qué es una Joint Venture o empresa en participación?",a:["Un acuerdo estratégico entre al menos dos empresas independientes que ponen en común esfuerzos y recursos para un proyecto.","La venta de todos los activos de una empresa.","La compra de los distribuidores de una compañía.","La reducción de costos mediante despidos."],k:0,e:"Las empresas colaboran en un proyecto, pero las partes siguen siendo independientes."},
+{c:"Joint Venture",q:"¿Qué distingue a una Equity Joint Venture?",a:["Se crea una nueva sociedad con personalidad jurídica propia.","Se colabora únicamente mediante un contrato sin crear una sociedad independiente.","Una empresa compra a todos sus proveedores.","Se venden las divisiones no rentables."],k:0,e:"En una Equity Joint Venture se crea una nueva sociedad con personalidad jurídica propia, cuyo capital se divide entre los socios."},
+{c:"Joint Venture",q:"¿Qué ocurre en una Non-equity Joint Venture?",a:["Las compañías colaboran mediante un contrato, sin constituir una sociedad independiente.","Se crea obligatoriamente una nueva sociedad.","Una empresa liquida todos sus activos.","Una compañía adquiere a su distribuidor."],k:0,e:"Es un acuerdo contractual para colaborar en una actividad común sin crear una sociedad independiente."},
+{c:"Encogimiento",q:"¿En qué consiste la estrategia de encogimiento?",a:["Reagrupar la organización reduciendo costos y activos para revertir la caída de ventas y utilidades.","Comprar una empresa competidora.","Aumentar la publicidad de los productos actuales.","Agregar productos diferentes a la cartera."],k:0,e:"El encogimiento busca reducir costos y activos para revertir la caída de ventas y utilidades y fortalecer las ventajas competitivas."},
+{c:"Encogimiento",q:"¿Cuál es un indicador que puede señalar que el encogimiento sería efectivo?",a:["Baja rentabilidad.","Aumento sostenido de ventas y utilidades.","Mercado sin competidores.","Exceso de demanda de los productos."],k:0,e:"Entre los indicadores resumidos aparecen competencia distintiva, competidores débiles, baja rentabilidad, oportunidades desaprovechadas y necesidad de reorganización interna."},
+{c:"Encogimiento",q:"¿Cuál de estas situaciones aparece como motivo para aplicar encogimiento?",a:["La organización sufre ineficiencia, poca rentabilidad y presión para mejorar resultados.","La empresa tiene resultados excelentes y no requiere cambios.","La demanda crece sin dificultades.","Los proveedores son confiables y económicos."],k:0,e:"El material menciona ineficiencia, poca rentabilidad, ánimo decaído de empleados y presión de accionistas."},
+{c:"Desinversión",q:"¿Cuál es el propósito habitual de la desinversión según el documento?",a:["Recaudar capital para otras adquisiciones o inversiones estratégicas.","Crear una nueva sociedad con otra empresa.","Aumentar el gasto publicitario.","Asegurar el suministro de materias primas."],k:0,e:"La desinversión puede recaudar capital y también formar parte de un recorte de gastos al desprenderse de negocios que no encajan o no son rentables."},
+{c:"Desinversión",q:"¿Cuál es una situación en la que la desinversión podría resultar efectiva?",a:["Una división no se adapta al resto de la organización.","Todos los departamentos funcionan de manera coordinada y rentable.","La empresa desea aumentar sus promociones.","Los mercados actuales no están saturados."],k:0,e:"Uno de los seis indicadores es que una división no se adapte al resto de la organización."},
+{c:"Desinversión",q:"¿Qué puede justificar la desinversión de una división?",a:["Requiere más recursos de los que la empresa puede ofrecerle.","Tiene una alta rentabilidad y encaja perfectamente.","Aumenta el desempeño general de la organización.","No necesita inversiones ni recursos."],k:0,e:"El documento señala como indicador que una división requiera más recursos de los que la empresa puede ofrecerle para ser competitiva."},
+{c:"Liquidación",q:"¿En qué consiste la liquidación?",a:["Vender todos los activos de una empresa a precio de mercado.","Adquirir una empresa distribuidora.","Crear nuevos productos relacionados.","Aumentar la participación de mercado."],k:0,e:"La liquidación consiste en vender todos los activos de la empresa a un precio de mercado y suele usarse cuando no es viable continuar operando."},
+{c:"Liquidación",q:"¿Cuál es un desafío que puede llevar a la liquidación?",a:["Deudas insostenibles.","Aumento de la clientela.","Mayor control de calidad.","Expansión de la red de distribución."],k:0,e:"El documento menciona pérdidas significativas, deudas insostenibles, insolvencia y falta de liquidez."},
+{c:"Liquidación",q:"Según el material, ¿qué puede ocurrir cuando el mercado entra en declive?",a:["La demanda disminuye o una nueva tecnología reemplaza a la existente.","La demanda siempre aumenta.","Los productos actuales nunca pierden vigencia.","La empresa deja de necesitar innovación."],k:0,e:"El declive puede ocurrir porque disminuye el nivel total de necesidades o porque una nueva tecnología reemplaza a la existente."},
+{c:"Aplicación",q:"Una empresa compra a su proveedor de materia prima para asegurar el suministro. ¿Qué estrategia aplica?",a:["Integración hacia atrás.","Integración hacia adelante.","Desarrollo de mercado.","Penetración del mercado."],k:0,e:"La integración hacia atrás aumenta el control de la empresa sobre sus proveedores."},
+{c:"Aplicación",q:"Una empresa fabricante abre sus propios puntos de venta para vender directamente a los consumidores. ¿Qué estrategia representa?",a:["Integración hacia adelante.","Integración hacia atrás.","Encogimiento.","Liquidación."],k:0,e:"Al controlar sus canales de distribución y acercarse directamente a los consumidores, aplica integración hacia adelante."},
+{c:"Aplicación",q:"Una empresa ofrece sus productos actuales en una nueva región donde todavía no opera. ¿Qué estrategia corresponde?",a:["Desarrollo de mercado.","Desarrollo del producto.","Diversificación concéntrica.","Desinversión."],k:0,e:"El desarrollo de mercado consiste en conquistar nuevos mercados para los productos de la empresa."},
+{c:"Aplicación",q:"Una empresa mejora la calidad y el rendimiento de un producto que ya vende. ¿Qué estrategia se relaciona más directamente?",a:["Desarrollo del producto.","Liquidación.","Integración horizontal.","Encogimiento."],k:0,e:"El desarrollo de productos puede crear productos nuevos o mejorar el rendimiento, costo o calidad de los existentes."},
+{c:"Aplicación",q:"Dos empresas independientes acuerdan compartir recursos para realizar un proyecto, pero continúan siendo independientes. ¿Qué estrategia es?",a:["Joint Venture.","Liquidación.","Penetración del mercado.","Encogimiento."],k:0,e:"La Joint Venture es un acuerdo estratégico de colaboración entre empresas que mantienen su independencia."}
+];
+let questions=[],index=0,score=0,chosen=[],answered=false;
+const $=id=>document.getElementById(id);
+function shuffle(arr){return [...arr].sort(()=>Math.random()-.5)}
+function show(id){["start","quiz","result"].forEach(x=>$(x).classList.toggle("hidden",x!==id))}
+function startQuiz(){questions=shuffle(bank).slice(0,25);index=0;score=0;chosen=[];answered=false;$("liveScore").textContent="0 puntos";show("quiz");render()}
+function render(){
+ const item=questions[index];answered=false;
+ $("counter").textContent=`Pregunta ${index+1} de ${questions.length}`;$("category").textContent=item.c;$("question").textContent=item.q;
+ $("progress").style.width=`${index/questions.length*100}%`;$("answers").innerHTML="";$("feedback").className="feedback";$("feedback").innerHTML="";$("next").disabled=true;$("next").textContent=index===questions.length-1?"Ver resultado →":"Siguiente →";
+ item.a.forEach((answer,i)=>{const b=document.createElement("button");b.className="answer";const letter=document.createElement("span");letter.className="letter";letter.textContent=String.fromCharCode(65+i);const label=document.createElement("span");label.textContent=answer;b.append(letter,label);b.onclick=()=>selectAnswer(i);$("answers").appendChild(b)});
+}
+function selectAnswer(choice){
+ if(answered)return;answered=true;const item=questions[index],buttons=[...$("answers").children],correct=choice===item.k;if(correct)score+=100;chosen.push({choice,correct});
+ buttons.forEach((b,i)=>{b.disabled=true;if(i===item.k)b.classList.add("correct");else if(i===choice)b.classList.add("wrong")});
+ $("liveScore").textContent=score+" puntos";$("feedback").className="feedback show";
+ $("feedback").innerHTML=`<strong>${correct?"¡Correcto! +100 puntos":"No es correcto. La respuesta correcta es "+String.fromCharCode(65+item.k)+"."}</strong>${item.e}`;$("next").disabled=false;
+}
+function nextQuestion(){if(!answered)return;index++;if(index<questions.length)render();else finish()}
+function finish(){
+ $("progress").style.width="100%";show("result");const total=questions.length*100,pct=Math.round(score/total*100),good=chosen.filter(x=>x.correct).length;
+ $("finalScore").textContent=score.toLocaleString("es-PA");$("correctCount").textContent=`${good} de ${questions.length} respuestas correctas · ${pct}%`;
+ $("resultTitle").textContent=pct>=80?"¡Excelente trabajo!":pct>=60?"¡Vas por buen camino!":"¡Sigue practicando!";
+ $("resultText").textContent=pct>=80?"Demuestras un buen dominio de las estrategias alternativas.":pct>=60?"Tienes una buena base; revisa las explicaciones para reforzar los conceptos.":"Este intento te ayuda a identificar qué estrategias necesitas repasar.";
+ $("review").innerHTML="";questions.forEach((q,i)=>{const r=document.createElement("div");r.className="review";const status=chosen[i].correct?"✓ Correcta":"✕ Incorrecta";r.innerHTML=`<strong>${i+1}. ${q.q}</strong><br><small>${status} · Respuesta correcta: ${q.a[q.k]}</small><p>${q.e}</p>`;$("review").appendChild(r)});
+}
+function quitQuiz(){show("start")}function showStart(){show("start")}
+</script>
+</body>
+</html>
